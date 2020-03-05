@@ -100,7 +100,7 @@ void Platform::CreateFilterEngineAsync(const FilterEngine::CreationParameters& p
 
   GetJsEngine(); // ensures that JsEngine is instantiated
   FilterEngine::CreateAsync(
-    jsEngine,
+    *jsEngine,
     GetEvaluateCallback(),
     [onCreated, filterEnginePromise](const FilterEnginePtr& filterEngine)
     {
@@ -128,7 +128,7 @@ Updater& Platform::GetUpdater()
   GetJsEngine(); // ensures that JsEngine is instantiated
   std::lock_guard<std::mutex> lock(modulesMutex);
   if (!updater)
-    updater = std::make_shared<Updater>(jsEngine, GetEvaluateCallback());
+    updater = std::make_unique<Updater>(jsEngine, GetEvaluateCallback());
   return *updater;
 }
 

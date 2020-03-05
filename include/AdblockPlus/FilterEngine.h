@@ -298,7 +298,7 @@ namespace AdblockPlus
      *        for use.
      * @param parameters optional creation parameters.
      */
-    static void CreateAsync(const JsEnginePtr& jsEngine,
+    static void CreateAsync(JsEngine& jsEngine,
       const EvaluateCallback& evaluateCallback,
       const OnCreatedCallback& onCreated,
       const CreationParameters& parameters = CreationParameters());
@@ -307,7 +307,7 @@ namespace AdblockPlus
      * Retrieves the `JsEngine` instance associated with this `FilterEngine`
      * instance.
      */
-    JsEngine& GetJsEngine() const { return *jsEngine; }
+    JsEngine& GetJsEngine() const { return jsEngine; }
 
     /**
      * Checks if this is the first run of the application.
@@ -588,11 +588,11 @@ namespace AdblockPlus
     static std::string ContentTypeToString(ContentType contentType);
 
   private:
-    JsEnginePtr jsEngine;
+    JsEngine& jsEngine;
     bool firstRun;
     static const std::map<ContentType, std::string> contentTypes;
 
-    explicit FilterEngine(const JsEnginePtr& jsEngine);
+    explicit FilterEngine(JsEngine& jsEngine);
 
     FilterPtr CheckFilterMatch(const std::string& url,
                                ContentTypeMask contentTypeMask,

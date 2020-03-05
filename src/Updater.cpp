@@ -37,19 +37,19 @@ namespace
     };
 }
 
-Updater::Updater(const JsEnginePtr& jsEngine, const EvaluateCallback& evaluateCallback)
+Updater::Updater(JsEngine& jsEngine, const EvaluateCallback& evaluateCallback)
   : jsEngine(jsEngine), updateCheckId(0)
 {
   // Lock the JS engine while we are loading scripts, no timeouts should fire
   // until we are done.
-  const JsContext context(*jsEngine);
+  const JsContext context(jsEngine);
   for (const auto& updaterJsFile: updaterJsFiles)
     evaluateCallback(updaterJsFile);
 }
 
 void Updater::SetUpdateAvailableCallback(const Updater::UpdateAvailableCallback& callback)
 {
-  jsEngine->SetEventCallback("updateAvailable", [callback](JsValueList&& params)
+  jsEngine.SetEventCallback("updateAvailable", [callback](JsValueList&& params)
   {
     if (params.size() >= 1 && !params[0].IsNull())
       callback(params[0].AsString());
@@ -58,38 +58,38 @@ void Updater::SetUpdateAvailableCallback(const Updater::UpdateAvailableCallback&
 
 void Updater::RemoveUpdateAvailableCallback()
 {
-  jsEngine->RemoveEventCallback("updateAvailable");
+  jsEngine.RemoveEventCallback("updateAvailable");
 }
 
 void Updater::ForceUpdateCheck(const Updater::UpdateCheckDoneCallback& callback)
 {
-  JsValue func = jsEngine->Evaluate("API_UPDATER.forceUpdateCheck");
+  JsValue func = jsEngine.Evaluate("API_UPDATER.forceUpdateCheck");
   JsValueList params;
   if (callback)
   {
     std::string eventName = "_updateCheckDone" + std::to_string(++updateCheckId);
-    jsEngine->SetEventCallback(eventName, [this, eventName, callback](JsValueList&& params)
+    jsEngine.SetEventCallback(eventName, [this, eventName, callback](JsValueList&& params)
     {
       std::string error(params.size() >= 1 && !params[0].IsNull() ? params[0].AsString() : "");
       callback(error);
-      jsEngine->RemoveEventCallback(eventName);
+      jsEngine.RemoveEventCallback(eventName);
     });
-    params.push_back(jsEngine->NewValue(eventName));
+    params.push_back(jsEngine.NewValue(eventName));
   }
   func.Call(params);
 }
 
 JsValue Updater::GetPref(const std::string& pref) const
 {
-  JsValue func = jsEngine->Evaluate("API_UPDATER.getPref");
-  return func.Call(jsEngine->NewValue(pref));
+  JsValue func = jsEngine.Evaluate("API_UPDATER.getPref");
+  return func.Call(jsEngine.NewValue(pref));
 }
 
 void Updater::SetPref(const std::string& pref, const JsValue& value)
 {
-  JsValue func = jsEngine->Evaluate("API_UPDATER.setPref");
+  JsValue func = jsEngine.Evaluate("API_UPDATER.setPref");
   JsValueList params;
-  params.push_back(jsEngine->NewValue(pref));
+  params.push_back(jsEngine.NewValue(pref));
   params.push_back(value);
   func.Call(params);
 }

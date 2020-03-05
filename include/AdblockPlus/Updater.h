@@ -89,10 +89,10 @@ namespace AdblockPlus
      */
     void SetPref(const std::string& pref, const JsValue& value);
 
-    explicit Updater(const JsEnginePtr& jsEngine, const EvaluateCallback& callback);
+    explicit Updater(JsEngine& jsEngine, const EvaluateCallback& callback);
 
   private:
-    JsEnginePtr jsEngine;
+    JsEngine& jsEngine;
     int updateCheckId;
   };
 }

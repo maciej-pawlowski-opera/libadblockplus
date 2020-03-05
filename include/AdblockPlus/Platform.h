@@ -137,9 +137,9 @@ namespace AdblockPlus
   private:
     // used for creation and deletion of modules.
     std::mutex modulesMutex;
-    std::shared_ptr<JsEngine> jsEngine;
+    std::unique_ptr<JsEngine> jsEngine;
     std::shared_future<FilterEnginePtr> filterEngine;
-    std::shared_ptr<Updater> updater;
+    std::unique_ptr<Updater> updater;
     std::set<std::string> evaluatedJsSources;
     std::mutex evaluatedJsSourcesMutex;
     std::function<void(const std::string&)> GetEvaluateCallback();
