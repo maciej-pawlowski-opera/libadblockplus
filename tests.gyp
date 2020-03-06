@@ -4,6 +4,7 @@
     'type': 'executable',
     'xcode_settings': {},
     'dependencies': [
+      'googletest.gyp:googlemock',
       'googletest.gyp:googletest_main',
       'libadblockplus.gyp:libadblockplus'
     ],

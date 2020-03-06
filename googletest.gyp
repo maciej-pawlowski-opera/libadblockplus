@@ -73,6 +73,23 @@
     },
   },
   {
+    'target_name': 'googlemock',
+    'type': '<(library)',
+    'sources': [
+      'third_party/googletest/googlemock/src/gmock-all.cc',
+    ],
+    'include_dirs': [
+      'third_party/googletest/googlemock',
+      'third_party/googletest/googlemock/include'
+    ],
+    'direct_dependent_settings': {
+      'include_dirs': [
+        'third_party/googletest/googlemock',
+        'third_party/googletest/googlemock/include'
+      ]
+    },
+  },
+  {
     'target_name': 'googletest_main',
     'type': '<(library)',
     'sources': ['third_party/googletest/googletest/src/gtest_main.cc'],
