@@ -21,7 +21,6 @@
 #include "JsError.h"
 #include "Utils.h"
 #include <libplatform/libplatform.h>
-#include <AdblockPlus/Platform.h>
 
 namespace
 {
@@ -134,16 +133,12 @@ void JsEngine::ScheduleTimer(const v8::FunctionCallbackInfo<v8::Value>& argument
   int64_t millis = CHECKED_TO_VALUE(
     arguments[1]->IntegerValue(arguments.GetIsolate()->GetCurrentContext()));
 
-  jsEngine->platform.WithTimer(
-    [millis, weakJsEngine, timerParamsID](ITimer& timer)
-    {
-      timer.SetTimer(
+  jsEngine->timer.SetTimer(
         std::chrono::milliseconds(millis), [weakJsEngine, timerParamsID]
           {
             if (auto jsEngine = weakJsEngine.lock())
               jsEngine->CallTimerTask(timerParamsID);
           });
-    });
 }
 
 void JsEngine::CallTimerTask(const JsWeakValuesID& timerParamsID)
@@ -156,20 +151,30 @@ void JsEngine::CallTimerTask(const JsWeakValuesID& timerParamsID)
   callback.Call(timerParams);
 }
 
-AdblockPlus::JsEngine::JsEngine(Platform& platform, std::unique_ptr<IV8IsolateProvider> isolate)
-  : platform(platform)
-  , isolate(std::move(isolate))
-{
-}
+AdblockPlus::JsEngine::JsEngine(LogSystem& logSystem,
+                                IFileSystem& fileSystem,
+                                IWebRequest& webRequest,
+                                ITimer& timer,
+                                std::unique_ptr<IV8IsolateProvider> isolate)
+    : logSystem(logSystem),
+      fileSystem(fileSystem),
+      webRequest(webRequest),
+      timer(timer),
+      isolate(std::move(isolate)) {}
 
-AdblockPlus::JsEnginePtr AdblockPlus::JsEngine::New(const AppInfo& appInfo,
-  Platform& platform, std::unique_ptr<IV8IsolateProvider> isolate)
-{
+AdblockPlus::JsEnginePtr AdblockPlus::JsEngine::New(
+    const AppInfo& appInfo,
+    LogSystem& logSystem,
+    IFileSystem& fileSystem,
+    IWebRequest& webRequest,
+    ITimer& timer,
+    std::unique_ptr<IV8IsolateProvider> isolate) {
   if (!isolate)
   {
     isolate.reset(new ScopedV8Isolate());
   }
-  JsEnginePtr result(new JsEngine(platform, std::move(isolate)));
+  JsEnginePtr result(new JsEngine(logSystem, fileSystem, webRequest, timer,
+                                  std::move(isolate)));
 
   const v8::Locker locker(result->GetIsolate());
   const v8::Isolate::Scope isolateScope(result->GetIsolate());

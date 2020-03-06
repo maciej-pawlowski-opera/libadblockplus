@@ -117,18 +117,6 @@ namespace AdblockPlus
      */
     Updater& GetUpdater();
 
-    typedef std::function<void(ITimer&)> WithTimerCallback;
-    virtual void WithTimer(const WithTimerCallback&);
-
-    typedef std::function<void(IFileSystem&)> WithFileSystemCallback;
-    virtual void WithFileSystem(const WithFileSystemCallback&);
-
-    typedef std::function<void(IWebRequest&)> WithWebRequestCallback;
-    virtual void WithWebRequest(const WithWebRequestCallback&);
-
-    typedef std::function<void(LogSystem&)> WithLogSystemCallback;
-    virtual void WithLogSystem(const WithLogSystemCallback&);
-
   protected:
     LogSystemPtr logSystem;
     TimerPtr timer;

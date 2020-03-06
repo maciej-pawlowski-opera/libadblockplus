@@ -45,7 +45,6 @@ namespace v8
 namespace AdblockPlus
 {
   class JsEngine;
-  class Platform;
 
   /**
    * Shared smart pointer to a `JsEngine` instance.
@@ -105,13 +104,21 @@ namespace AdblockPlus
      * Creates a new JavaScript engine instance.
      *
      * @param appInfo Information about the app.
-     * @param platform AdblockPlus platform providing with necessary
-     *        dependencies.
+     * @param logSystem Handles JavaScript log commands (Console API).
+     * @param fileSystem Provides access to the file system for JS bindings.
+     * @param webRequests Allows JavaScript to perform network requests.
+     * @param timer For scheduling delayed tasks in response to events.
      * @param isolate A provider of v8::Isolate, if the value is nullptr then
      *        a default implementation is used.
      * @return New `JsEngine` instance.
      */
-    static JsEnginePtr New(const AppInfo& appInfo, Platform& platform, std::unique_ptr<IV8IsolateProvider> isolate = nullptr);
+    static JsEnginePtr New(
+        const AppInfo& appInfo,
+        LogSystem& logSystem,
+        IFileSystem& fileSystem,
+        IWebRequest& webRequest,
+        ITimer& timer,
+        std::unique_ptr<IV8IsolateProvider> isolate = nullptr);
     /**
      * Registers the callback function for an event.
      * @param eventName Event name. Note that this can be any string - it's a
@@ -233,13 +240,6 @@ namespace AdblockPlus
      */
     static void ScheduleTimer(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 
-    /*
-     * Private functionality required to implement web requests.
-     * @param arguments `v8::FunctionCallbackInfo` is the arguments received in C++
-     * callback associated for global GET method.
-     */
-    static void ScheduleWebRequest(const v8::FunctionCallbackInfo<v8::Value>& arguments);
-
     /**
      * Converts v8 arguments to `JsValue` objects.
      * @param arguments `v8::FunctionCallbackInfo` object containing the arguments to
@@ -263,27 +263,42 @@ namespace AdblockPlus
       return isolate->Get();
     }
 
+    LogSystem& GetLogSystem()
+    {
+      return logSystem;
+    }
+
+    IFileSystem& GetFilesystem()
+    {
+      return fileSystem;
+    }
+
+    IWebRequest& GetWebRequest()
+    {
+      return webRequest;
+    }
+
     /**
      * Notifies JS engine about critically low memory what should cause a
      * garbage collection.
      */
     void NotifyLowMemory();
 
-    /**
-     * Private functionality.
-     */
-    Platform& GetPlatform()
-    {
-      return platform;
-    }
   private:
     void CallTimerTask(const JsWeakValuesID& timerParamsID);
 
-    explicit JsEngine(Platform& platform, std::unique_ptr<IV8IsolateProvider> isolate);
+    JsEngine(LogSystem& logSystem,
+             IFileSystem& fileSystem,
+             IWebRequest& webRequest,
+             ITimer& timer,
+             std::unique_ptr<IV8IsolateProvider> isolate);
 
     JsValue GetGlobalObject();
 
-    Platform& platform;
+    LogSystem& logSystem;
+    IFileSystem& fileSystem;
+    IWebRequest& webRequest;
+    ITimer& timer;
     /// Isolate must be disposed only after disposing of all objects which are
     /// using it.
     std::unique_ptr<IV8IsolateProvider> isolate;

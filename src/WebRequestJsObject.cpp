@@ -21,11 +21,10 @@
 #include "JsContext.h"
 #include "Utils.h"
 #include "WebRequestJsObject.h"
-#include <AdblockPlus/Platform.h>
 
 using namespace AdblockPlus;
 
-void JsEngine::ScheduleWebRequest(const v8::FunctionCallbackInfo<v8::Value>& arguments)
+void ScheduleWebRequest(const v8::FunctionCallbackInfo<v8::Value>& arguments)
 {
   AdblockPlus::JsEnginePtr jsEngine = AdblockPlus::JsEngine::FromArguments(arguments);
   AdblockPlus::JsValueList converted = jsEngine->ConvertArguments(arguments);
@@ -79,11 +78,7 @@ void JsEngine::ScheduleWebRequest(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     webRequestParams[2].Call(resultObject);
   };
-  jsEngine->GetPlatform().WithWebRequest(
-    [url, headers, getCallback](IWebRequest& webRequest)
-    {
-      webRequest.GET(url, headers, getCallback);
-    });
+  jsEngine->GetWebRequest().GET(url, headers, getCallback);
 }
 
 namespace
@@ -92,7 +87,7 @@ namespace
   {
     try
     {
-      AdblockPlus::JsEngine::ScheduleWebRequest(arguments);
+      ScheduleWebRequest(arguments);
     } catch (const std::exception& e)
     {
       return AdblockPlus::Utils::ThrowExceptionInJS(arguments.GetIsolate(), e.what());

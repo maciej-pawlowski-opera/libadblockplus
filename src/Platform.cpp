@@ -58,7 +58,8 @@ void Platform::SetUpJsEngine(const AppInfo& appInfo, std::unique_ptr<IV8IsolateP
   std::lock_guard<std::mutex> lock(modulesMutex);
   if (jsEngine)
     return;
-  jsEngine = JsEngine::New(appInfo, *this, std::move(isolate));
+  jsEngine = JsEngine::New(appInfo, *logSystem, *fileSystem, *webRequest,
+                           *timer, std::move(isolate));
 }
 
 JsEngine& Platform::GetJsEngine()
@@ -132,30 +133,6 @@ Updater& Platform::GetUpdater()
   return *updater;
 }
 
-void Platform::WithTimer(const WithTimerCallback& callback)
-{
-  if (timer && callback)
-    callback(*timer);
-}
-
-void Platform::WithFileSystem(const WithFileSystemCallback& callback)
-{
-  if (fileSystem && callback)
-    callback(*fileSystem);
-}
-
-void Platform::WithWebRequest(const WithWebRequestCallback& callback)
-{
-  if (webRequest && callback)
-    callback(*webRequest);
-}
-
-void Platform::WithLogSystem(const WithLogSystemCallback& callback)
-{
-  if (logSystem && callback)
-    callback(*logSystem);
-}
-
 namespace
 {
   class DefaultPlatform : public Platform
@@ -166,11 +143,6 @@ namespace
     {
     }
     ~DefaultPlatform();
-
-    void WithTimer(const WithTimerCallback&) override;
-    void WithFileSystem(const WithFileSystemCallback&) override;
-    void WithWebRequest(const WithWebRequestCallback&) override;
-    void WithLogSystem(const WithLogSystemCallback&) override;
 
   private:
     DefaultPlatformBuilder::AsyncExecutorPtr asyncExecutor;
@@ -191,30 +163,6 @@ namespace
       tmpFileSystem = std::move(fileSystem);
       tmpWebRequest = std::move(webRequest);
     }
-  }
-
-  void DefaultPlatform::WithTimer(const WithTimerCallback& callback)
-  {
-    std::lock_guard<std::recursive_mutex> lock(interfacesMutex);
-    Platform::WithTimer(callback);
-  }
-
-  void DefaultPlatform::WithFileSystem(const WithFileSystemCallback& callback)
-  {
-    std::lock_guard<std::recursive_mutex> lock(interfacesMutex);
-    Platform::WithFileSystem(callback);
-  }
-
-  void DefaultPlatform::WithWebRequest(const WithWebRequestCallback& callback)
-  {
-    std::lock_guard<std::recursive_mutex> lock(interfacesMutex);
-    Platform::WithWebRequest(callback);
-  }
-
-  void DefaultPlatform::WithLogSystem(const WithLogSystemCallback& callback)
-  {
-    std::lock_guard<std::recursive_mutex> lock(interfacesMutex);
-    Platform::WithLogSystem(callback);
   }
 }
 

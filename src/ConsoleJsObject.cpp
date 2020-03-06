@@ -22,7 +22,6 @@
 #include "ConsoleJsObject.h"
 #include "JsContext.h"
 #include "Utils.h"
-#include <AdblockPlus/Platform.h>
 #include "v8-compat-api.h"
 
 using namespace AdblockPlus::V8CompatApi;
@@ -50,11 +49,8 @@ namespace
     source << AdblockPlus::Utils::FromV8String(isolate, frame->GetScriptName());
     source << ":" << frame->GetLineNumber();
 
-    jsEngine->GetPlatform().WithLogSystem(
-      [logLevel, &message, &source](AdblockPlus::LogSystem& callback)
-      {
-        callback(logLevel, message.str(), source.str());
-      });
+    auto& logSystem = jsEngine->GetLogSystem();
+    logSystem(logLevel, message.str(), source.str());
   }
 
   void LogCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments)
@@ -106,11 +102,8 @@ namespace
       traceback << std::endl;
     }
 
-    jsEngine->GetPlatform().WithLogSystem(
-      [&traceback](AdblockPlus::LogSystem& callback)
-      {
-        callback(AdblockPlus::LogSystem::LOG_LEVEL_TRACE, traceback.str(), "");
-      });
+    auto& logSystem = jsEngine->GetLogSystem();
+    logSystem(AdblockPlus::LogSystem::LOG_LEVEL_TRACE, traceback.str(), "");
   }
 }
 
